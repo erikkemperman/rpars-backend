@@ -1,0 +1,6 @@
+.idea/
+.vscode/
+node_modules/
+dist/
+src/credentials.ts
+_creds.txt
