@@ -17,6 +17,7 @@
       "koa-bodyparser": "^4.3.0",
       "koa-favicon": "^2.1.0",
       "koa-logger": "^3.2.1",
+      "koa-ratelimit": "^4.2.1",
       "koa-router": "^9.1.0",
       "mysql": "^2.14.1",
       "mysql2": "^2.1.0",

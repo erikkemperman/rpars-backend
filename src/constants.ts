@@ -11,6 +11,7 @@ export class Constants {
   static readonly HASH_LENGTH: number = 64; // bytes
   static readonly NONCE_LENGTH: number = 64; // bytes
   static readonly PASSWORD_ALGORITHM: string = 'sha512';
+
   static readonly PASSWORD_LENGTH: number = 512; // bytes
   static readonly PASSWORD_ITERATIONS: number = 131_072;
   static readonly PASSWORD_ITERATIONS_FLEX: number = 0.05 // +/- 2.5%;
@@ -20,4 +21,7 @@ export class Constants {
 
   static readonly MAINTENANCE_REQUESTS = 10;
   static readonly MAINTENANCE_MILLIS = 15 * 1_000; // 15 seconds
+
+  static readonly RATELIMIT_MAX = 15;
+  static readonly RATELIMIT_DURATION = 60_000; // 1 minute
 }
