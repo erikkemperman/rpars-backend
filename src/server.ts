@@ -9,11 +9,11 @@ import * as ratelimit from 'koa-ratelimit';
 import * as Router from 'koa-router';
 
 import { Constants } from './constants';
-import { Credentials } from './credentials';
 import { Database } from './database';
 
 import * as cipher from './cipher';
 import * as session from './session';
+import * as oauth from './oauth';
 
 
 Database.create().then((db: Database) => {
@@ -89,6 +89,12 @@ Database.create().then((db: Database) => {
 
   router.post('key_get', '/api/key_get', cipher.key_get);
   router.post('key_set', '/api/key_set', cipher.key_set);
+
+  router.post('oauth_providers', '/api/oauth_providers', oauth.get_providers);
+  router.get('oauth_send', '/api/oauth_send/:oauth_provider/:session_id', oauth.login_send);
+  router.get('oauth_return', '/api/oauth_return/:oauth_provider', oauth.login_return);
+  router.post('oauth_data', '/api/oauth_data/:oauth_provider', oauth.fetch_data);
+
   server.use(router.routes());
 
 

@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany } from 'typeorm';
 
 import { Constants } from '../constants';
-import { Key, Challenge, Session } from '.';
+import { Challenge, Session, Key, OAuth, Oura } from '.';
 
 
 @Entity()
@@ -35,4 +35,10 @@ export class User {
 
     @OneToMany(type => Key, key => key.user)
     keys: Promise<Key[]>;
+
+    @OneToMany(type => OAuth, oauth => oauth.user)
+    oauths: Promise<OAuth[]>;
+
+    @OneToMany(type => Oura, oura => oura.user)
+    ouras: Promise<Oura[]>;
 }

@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 
-import { User } from '.';
+import { User, Oura } from '.';
 
 @Entity()
 export class Key {
@@ -14,6 +14,7 @@ export class Key {
     @Column('text')
     public_key: string;
 
-
+    @OneToMany(type => Oura, oura => oura.user)
+    ouras: Promise<Oura[]>;
 
 }
