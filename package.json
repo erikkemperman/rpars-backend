@@ -20,6 +20,7 @@
       "koa-router": "^9.1.0",
       "mysql": "^2.14.1",
       "mysql2": "^2.1.0",
+      "nodemon": "^2.0.6",
       "reflect-metadata": "^0.1.10",
       "seedrandom": "^3.0.5",
       "typeorm": "0.2.25"
