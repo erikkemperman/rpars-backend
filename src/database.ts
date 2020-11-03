@@ -51,6 +51,8 @@ export class Database {
     let user: User | null = users.length === 1 && users[0] || null;
     if (user === null) {
       user = new User();
+      user.admin = false;
+      user.email = '';
       user.email_hash = Database.EMPTY_HASH;
       user.client_salt = session.random_string(Constants.NONCE_LENGTH);
       user.iterations = session.random_iterations(Constants.PASSWORD_ITERATIONS);

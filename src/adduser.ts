@@ -3,17 +3,27 @@ import { Constants } from './constants';
 import { Credentials } from './credentials'
 import * as session from './session'
 
-import { User, Session } from './entity';
+import { User } from './entity';
 
 Database.create().then(async (db: Database) => {
   for (let email of process.argv.slice(2)) {
-    let password = session.random_string(12, 'base64');;
-    const creds = email.split('=');
+    let password = session.random_string(12, 'base64');
+    let admin = false;
+    const creds = email.split(':');
     if (creds.length > 1) {
-      password = creds.pop();
+      if (creds.length > 2) {
+        admin = parseInt(creds.pop()) == 1;
+      }
+      const _password = creds.pop();
+      if (_password.length > 0) {
+        password = _password;
+      }
       email = creds.join('');
     }
+
     const user = new User();
+    user.admin = admin;
+    user.email = email;
     user.email_hash = session.hash(email, Credentials.CLIENT_HASH_SALT);
     user.client_salt = session.random_string(Constants.NONCE_LENGTH);
     user.iterations = session.random_iterations(Constants.PASSWORD_ITERATIONS);
@@ -27,6 +37,7 @@ Database.create().then(async (db: Database) => {
     await db.manager.save(user);
     console.log('Saved user');
     console.log(`  id: ${user.user_id}`);
+    console.log(`  admin: ${user.admin}`);
     console.log(`  email: ${email}`);
     console.log(`  password: ${password}`);
     console.log('');

@@ -211,7 +211,8 @@ export async function session_login_fini(ctx: Koa.ParameterizedContext) {
   ctx.response.body = JSON.stringify({
     server_proof: hmac(server_key, auth),
     session_id: client_session.session_token,
-    expiration: Constants.SESSION_EXPIRATION
+    expiration: Constants.SESSION_EXPIRATION,
+    admin: user.admin
   });
 }
 

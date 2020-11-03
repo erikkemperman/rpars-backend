@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany, ManyToOne } from 'typeorm';
 
 import { Constants } from '../constants';
-import { Challenge, Session, Key, OAuth, Oura } from '.';
+import { Challenge, Group, Session, Key, OAuth, Oura } from '.';
 
 
 @Entity()
@@ -10,6 +10,12 @@ export class User {
 
     @PrimaryGeneratedColumn()
     user_id: number;
+
+    @Column()
+    admin: boolean;
+
+    @Column('varchar')
+    email: string;
 
     // multiply by 2 to get # hex chars
     @Column('char', {length: Constants.HASH_LENGTH * 2})
@@ -41,4 +47,5 @@ export class User {
 
     @OneToMany(type => Oura, oura => oura.user)
     ouras: Promise<Oura[]>;
+
 }
