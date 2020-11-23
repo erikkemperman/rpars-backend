@@ -1,5 +1,5 @@
-DIR=$(dirname $0)
-echo $DIR
-cd $DIR
-npm run watch >> output.log 2>> error.log
+#!/usr/bin/env bash
 
+DIR=$(dirname $0)
+cd $DIR
+screen -S 'rpars' -d -m $DIR/really_run_server.sh
