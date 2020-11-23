@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToOne, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 
-import { Project, User } from '.';
+import { Project, User, Script } from '.';
 
 @Entity()
 @Unique(['project', 'group_name'])
@@ -17,4 +17,8 @@ export class Group {
 
     @OneToMany(type => User, user => user.group)
     users: Promise<User[]>;
+
+    @OneToOne(() => Script)
+    @JoinColumn()
+    script: Script;
 }

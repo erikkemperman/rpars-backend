@@ -3,7 +3,7 @@ import * as Koa from 'koa';
 import * as session from './session';
 import * as util from './util';
 import { User, Group, Project, Session } from './entity';
-import { In, MoreThan, Not } from 'typeorm';
+import { In, MoreThan } from 'typeorm';
 
 
 // Get group and project for current user
@@ -12,13 +12,25 @@ export async function member_get(ctx: Koa.ParameterizedContext) {
   if (sess === null) {
     return;
   }
-  const group: Group | null = sess.user.group || null;
-  const project: Project | null = group !== null && group.project || null;
+
+  const member = await ctx.state.db.connection
+        .getRepository(User)
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.group', 'group')
+        .leftJoinAndSelect('group.project', 'project')
+        .where('user.user_id = :user', {user: sess.user.user_id})
+        .getOne();
+
+  const project_id = member && member.group && member.group.project && member.group.project.project_id || -1;
+  const project_name = member && member.group && member.group.project && member.group.project.project_name || '';
+  const group_id = member && member.group && member.group.group_id || -1;
+  const group_name = member && member.group && member.group.group_name || '';
+
   ctx.response.body = JSON.stringify({
-    project_id: project && project.project_id || null,
-    project_name: project && project.project_name || null,
-    group_id: group && group.group_id || null,
-    group_name: group && group.group_name || null
+    project_id: project_id,
+    project_name: project_name,
+    group_id: group_id,
+    group_name: group_name,
   });
 }
 
