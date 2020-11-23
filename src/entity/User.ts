@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 
 import { Constants } from '../constants';
 import { Challenge, Group, Session, Key, OAuth, Oura } from '.';
@@ -42,8 +42,9 @@ export class User {
     @OneToMany(type => Key, key => key.user)
     keys: Promise<Key[]>;
 
-    @OneToMany(type => OAuth, oauth => oauth.user)
-    oauths: Promise<OAuth[]>;
+    @ManyToMany(() => OAuth)
+    @JoinTable()
+    oauths: OAuth[];
 
     @OneToMany(type => Oura, oura => oura.user)
     ouras: Promise<Oura[]>;

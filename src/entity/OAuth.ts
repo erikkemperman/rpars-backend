@@ -8,9 +8,6 @@ export class OAuth {
     @PrimaryGeneratedColumn()
     oauth_id: number;
 
-    @ManyToOne(type => User, user => user.oauths)
-    user: User;
-
     @Column()
     provider: string;
 

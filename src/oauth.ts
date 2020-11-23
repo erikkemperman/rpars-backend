@@ -65,7 +65,7 @@ export const OAUTH_PROVIDERS: {
         client_id: client_id,
         client_secret: client_secret
       });
-      console.log('before post', OURA_TOKEN_URL, query_params);
+      //console.log('before post', OURA_TOKEN_URL, query_params);
       const response = await HttpClient.post(OURA_TOKEN_URL, query_params, {
           headers: {
             'content-type': 'application/x-www-form-urlencoded;charset=utf-8'
@@ -73,7 +73,7 @@ export const OAUTH_PROVIDERS: {
         }
       );
       const res_data = response.data;
-      console.log('after post', res_data);
+      //console.log('after post', res_data);
 
       const token: string = res_data.access_token;
       let expire: number | null = null;
@@ -153,6 +153,9 @@ export const OAUTH_PROVIDERS: {
           save_oauth.refresh = new_refresh;
           await ctx.state.db.manager.save(OAuth, save_oauth);
         }
+        oauth.expiration = new_expiration;
+        oauth.token = new_token;
+        oauth.refresh = new_refresh;
         console.log('Token refreshed OK');
       }
 
@@ -179,7 +182,15 @@ export const OAUTH_PROVIDERS: {
         if (latest >= since) {
           url += '&start=' + latest;
 
-          const response = await HttpClient.get(url);
+          let response = null;
+          try {
+            response = await HttpClient.get(url);
+          } catch (err) {
+            ctx.response.status = 500;
+            ctx.response.message = `Oura synchronization failed`;
+            console.log(ctx.response.message);
+            return;
+          }
           const data: [] = response.data[type];
           // console.log('----');
           // console.log(JSON.stringify(data));
@@ -203,11 +214,13 @@ export const OAUTH_PROVIDERS: {
             try {
               await ctx.state.db.manager.save(Oura, values);
             } catch (err) {
+              console.log('Failed to save oura data');
               console.log(err);
             }
           } else {
             ctx.response.status = 500;
             ctx.response.message = `Expected an array from oura endpoint ${type}!`;
+            console.log(ctx.response.message);
             return;
           }
         }
@@ -251,9 +264,12 @@ export async function get_providers(ctx: Koa.ParameterizedContext) {
   if (sess === null) {
     return;
   }
-  const user: User = sess.user;
+  const user: User = await ctx.state.db.manager.findOne(User, {
+    where: {user_id: sess.user.user_id},
+    relations: ['oauths']
+  });
 
-  const providers: string[] = (await user.oauths).map((oauth) => oauth.provider);
+  const providers: string[] = (user.oauths || []).map((oauth) => oauth.provider);
   ctx.response.body = JSON.stringify({
     expiration: Constants.SESSION_EXPIRATION,
     providers: providers
@@ -267,7 +283,10 @@ export async function login_send(ctx: Koa.ParameterizedContext) {
   if (sess === null) {
     return;
   }
-  const user: User = sess.user;
+  const user: User = await ctx.state.db.manager.findOne(User, {
+    where: {user_id: sess.user.user_id},
+    relations: ['oauths']
+  });
 
   const oauth_api = OAUTH_PROVIDERS[oauth_provider];
   if (oauth_api === undefined) {
@@ -276,7 +295,7 @@ export async function login_send(ctx: Koa.ParameterizedContext) {
     return;
   }
 
-  const oauths: OAuth[] = (await user.oauths).filter((oauth) => oauth.provider === oauth_provider);
+  const oauths: OAuth[] = (user.oauths || []).filter((oauth) => oauth.provider === oauth_provider);
   let oauth: OAuth | null = oauths.length && oauths[0] || null;
 
   if (oauth && parseInt(oauth.expiration) > Date.now()) {
@@ -286,7 +305,6 @@ export async function login_send(ctx: Koa.ParameterizedContext) {
 
   const oauth_token = session.random_string(Constants.NONCE_LENGTH);
   oauth = new OAuth();
-  oauth.user = user;
   oauth.provider = oauth_provider;
   oauth.scope = 'login';
   oauth.token = oauth_token;
@@ -294,7 +312,7 @@ export async function login_send(ctx: Koa.ParameterizedContext) {
   oauth.expiration = (Date.now() + 3 * 60_000).toString();
   await ctx.state.db.manager.save(OAuth, oauth);
 
-  await oauth_api.authorize(ctx, oauth.oauth_id + ':' + oauth_token);
+  await oauth_api.authorize(ctx, oauth.oauth_id + ':' + oauth_token + ':' + user.user_id);
 }
 
 export async function login_return(ctx: Koa.ParameterizedContext) {
@@ -307,9 +325,10 @@ export async function login_return(ctx: Koa.ParameterizedContext) {
   }
 
   const oauth_state: string = ctx.query.state.split(':');
-  console.log(oauth_state);
+  //console.log(oauth_state);
   const oauth_id = parseInt(oauth_state[0]);
   const oauth_token = oauth_state[1];
+  const user_id = parseInt(oauth_state[2]);
 
   const oauth: OAuth = await ctx.state.db.manager.findOne(OAuth, oauth_id);
 
@@ -329,12 +348,18 @@ export async function login_return(ctx: Koa.ParameterizedContext) {
 
   const data = await oauth_api.token(ctx, oauth_code);
 
-  oauth.scope = ctx.query.scope;
+  oauth.scope = ctx.query.scope; // data.scope;
   oauth.token = data.token;
   oauth.refresh = data.refresh;
   oauth.expiration = data.expire.toString();
 
   await ctx.state.db.manager.save(oauth);
+  const user: User = await ctx.state.db.manager.findOne(User, {
+    where: {user_id: user_id},
+    relations: ['oauths']
+  });
+  user.oauths.push(oauth);
+  await ctx.state.db.manager.save(user);
 
   ctx.body = `RPARS is now linked with your ${oauth_provider} account!`;
 }
@@ -350,8 +375,6 @@ export async function fetch_data(ctx: Koa.ParameterizedContext) {
   //const key_id: number = parseInt(ctx.request.body.key_id) || ctx.state.sb.noop_key.key_id;
   const key_id = ctx.state.db.noop_key.key_id;
   const since: string = ctx.request.body.since || '2020-05-01';
-  const user: User = sess.user;
-  console.log(`Fetch ${oauth_provider} data since ${since} for user ${user.user_id} and key ${key_id}`);
 
   const oauth_api = OAUTH_PROVIDERS[oauth_provider];
   if (oauth_api === undefined) {
@@ -360,10 +383,12 @@ export async function fetch_data(ctx: Koa.ParameterizedContext) {
     return;
   }
 
-  const oauths: OAuth[] = await ctx.state.db.manager.find(OAuth, {
-    user: user,
-    provider: oauth_provider
+  const user: User = await ctx.state.db.manager.findOne(User, {
+    where: {user_id: sess.user.user_id},
+    relations: ['oauths']
   });
+
+  const oauths: OAuth[] = (user.oauths || []).filter((oauth) => oauth.provider === oauth_provider);
   const oauth: OAuth | null = oauths.length === 1 && oauths[0] || null;
   if (oauth === null) {
     if (oauths.length === 0) {
