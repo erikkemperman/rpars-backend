@@ -48,4 +48,6 @@ export class User {
     @OneToMany(type => Oura, oura => oura.user)
     ouras: Promise<Oura[]>;
 
+    @ManyToOne(type => Group, group => group.users)
+    group: Group;
 }

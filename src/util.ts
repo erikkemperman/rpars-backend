@@ -1,6 +1,7 @@
 import * as Koa from 'koa';
 
 import * as querystring from 'querystring';
+import { isArray } from 'util';
 
 export const HEX_REX = /^[0-9a-f]+$/;
 
@@ -13,6 +14,7 @@ export function stringify_query(obj: {}) {
 }
 
 export type ParameterType = 'string' | 'boolean' | 'number'
+                          | 'string[]' | 'boolean[]' | 'number[]'
 
 export function check_parameters(
     ctx: Koa.ParameterizedContext,
@@ -23,6 +25,20 @@ export function check_parameters(
     let t = typeof v;
     if (t === 'undefined') {
       problems.push(`missing ${key} param`);
+      continue;
+    }
+    if (typ.substr(-2) == '[]') {
+      if (!Array.isArray(v)) {
+        problems.push(`${key} param must be ${typ}`);
+        continue;
+      }
+      if (v.length > 0) {
+        let atyp = typ.substr(0, typ.length-2);
+        if (typeof(v[0]) !== atyp) {
+          problems.push(`${key} param must be ${typ}`);
+          continue;
+        }
+      }
     } else if (t !== typ) {
       problems.push(`${key} param must be ${typ}`);
     }

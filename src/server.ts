@@ -13,7 +13,9 @@ import { Database } from './database';
 
 import * as cipher from './cipher';
 import * as session from './session';
+import * as member from './member';
 import * as oauth from './oauth';
+
 
 
 Database.create().then((db: Database) => {
@@ -86,6 +88,14 @@ Database.create().then((db: Database) => {
   router.post('session_login_init', '/api/session_login_init', session.session_login_init);
   router.post('session_login_fini', '/api/session_login_fini', session.session_login_fini);
   router.post('session_logout', '/api/session_logout', session.session_logout);
+
+  router.post('member_get', '/api/member_get', member.member_get);
+  router.post('member_project_get', '/api/member_project_get', member.member_project_get);
+  router.post('member_group_get', '/api/member_group_get', member.member_group_get);
+  router.post('member_user_get', '/api/member_user_get', member.member_user_get);
+  router.post('member_user_unassigned_get', '/api/member_user_unassigned_get', member.member_user_unassigned_get);
+  router.post('member_add_users', '/api/member_add_users', member.member_add_users);
+  router.post('member_remove_user', '/api/member_remove_user', member.member_remove_user);
 
   router.post('key_get', '/api/key_get', cipher.key_get);
   router.post('key_set', '/api/key_set', cipher.key_set);

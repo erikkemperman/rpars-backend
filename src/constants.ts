@@ -22,6 +22,6 @@ export class Constants {
   static readonly MAINTENANCE_REQUESTS = 10;
   static readonly MAINTENANCE_MILLIS = 15 * 1_000; // 15 seconds
 
-  static readonly RATELIMIT_MAX = 15;
+  static readonly RATELIMIT_MAX = 60;
   static readonly RATELIMIT_DURATION = 60_000; // 1 minute
 }

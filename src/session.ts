@@ -249,6 +249,14 @@ export async function check_session(ctx: Koa.ParameterizedContext, session_id?: 
   return session;
 }
 
+export async function check_admin_session(ctx: Koa.ParameterizedContext, session_id?: string): Promise<Session> {
+  const session: Session | null = await check_session(ctx, session_id);
+  if (!session || !session.user.admin) {
+    return null;
+  }
+  return session;
+}
+
 
 export function random_string(bytes: number, encoding?: BufferEncoding): string {
   if (!encoding) {
