@@ -17,7 +17,7 @@ export class Constants {
   static readonly PASSWORD_ITERATIONS_FLEX: number = 0.05 // +/- 2.5%;
 
   static readonly CHALLENGE_EXPIRATION: number = 2 * 60 * 1_000; // 2 minutes
-  static readonly SESSION_EXPIRATION: number = 15 * 60 * 1_000; // 15 minutes
+  static readonly SESSION_EXPIRATION: number = 10 * 60 * 1_000; // 10 minutes
 
   static readonly MAINTENANCE_REQUESTS = 10;
   static readonly MAINTENANCE_MILLIS = 15 * 1_000; // 15 seconds

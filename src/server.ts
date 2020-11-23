@@ -15,6 +15,7 @@ import * as cipher from './cipher';
 import * as session from './session';
 import * as member from './member';
 import * as oauth from './oauth';
+import * as script from './script';
 
 
 
@@ -97,6 +98,10 @@ Database.create().then((db: Database) => {
   router.post('member_add_users', '/api/member_add_users', member.member_add_users);
   router.post('member_remove_user', '/api/member_remove_user', member.member_remove_user);
 
+  router.post('script_get', '/api/script_get', script.script_get);
+  router.post('script_group_get', '/api/script_group_get', script.script_group_get);
+  router.post('script_put', '/api/script_put', script.script_put);
+
   router.post('key_get', '/api/key_get', cipher.key_get);
   router.post('key_set', '/api/key_set', cipher.key_set);
 
@@ -104,6 +109,7 @@ Database.create().then((db: Database) => {
   router.get('oauth_send', '/api/oauth_send/:oauth_provider/:session_id', oauth.login_send);
   router.get('oauth_return', '/api/oauth_return/:oauth_provider', oauth.login_return);
   router.post('oauth_data', '/api/oauth_data/:oauth_provider', oauth.fetch_data);
+
 
   server.use(router.routes());
 
