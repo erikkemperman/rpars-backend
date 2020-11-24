@@ -25,10 +25,8 @@ function showQuestion(key, title, subtitle, content, options, expire) {
 }
 
 function _show(key, title, subtitle, content, expire, type, options) {
-  console.log('_show', arguments);
   const now = Date.now();
   const notifications = JSON.parse(localStorage.getItem(KEY) || '{}');
-  console.log('before', JSON.stringify(notifications));
   for (const date of Object.keys(notifications)) {
     for (const k of Object.keys(notifications[date])) {
       if (notifications[date][k]['expire'] < now) {
@@ -51,7 +49,6 @@ function _show(key, title, subtitle, content, expire, type, options) {
     'options': options,
     'status': 'unread'
   };
-  console.log('after', JSON.stringify(notifications));
   localStorage.setItem(KEY, JSON.stringify(notifications));
 }
 
