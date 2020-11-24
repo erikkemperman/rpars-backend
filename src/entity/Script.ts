@@ -12,9 +12,6 @@ export class Script {
     @Column('text')
     source: string;
 
-    @Column('text')
-    compiled: string;
-
     @Column()
     locked: boolean;
 

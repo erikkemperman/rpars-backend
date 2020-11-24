@@ -37,17 +37,18 @@ export async function script_get(ctx: Koa.ParameterizedContext) {
     script = new Script();
     script.source = '// Edit source code here\n';
     script.locked = false;
-    script.compiled = '';
     await ctx.state.db.manager.save(script);
     group.script = script;
     await ctx.state.db.manager.save(group);
   }
 
+  const wrap = readFileSync('./dist/script_wrap.js', 'utf-8');
+  const compiled = wrap.replace('//<--BODY-->//', script.source);
+
   ctx.response.body = JSON.stringify({
     script_id: script.script_id,
     locked: script.locked,
-    source: script.source,
-    compiled: script.compiled
+    source: compiled
   });
 }
 
@@ -78,7 +79,6 @@ export async function script_group_get(ctx: Koa.ParameterizedContext) {
     script = new Script();
     script.source = '// Edit source code here\n';
     script.locked = false;
-    script.compiled = '';
     await ctx.state.db.manager.save(script);
     group.script = script;
     await ctx.state.db.manager.save(group);
@@ -87,8 +87,7 @@ export async function script_group_get(ctx: Koa.ParameterizedContext) {
   ctx.response.body = JSON.stringify({
     script_id: script.script_id,
     locked: script.locked,
-    source: script.source,
-    compiled: script.compiled
+    source: script.source
   });
 }
 
@@ -119,8 +118,7 @@ export async function script_put(ctx: Koa.ParameterizedContext) {
   script.source = source;
   script.locked = locked;
 
-  const wrap = readFileSync('./dist/script_wrap.js', 'utf-8');
-  script.compiled = wrap.replace('//<--BODY-->//', source);
+
 
   // TODO script.compiled = ...
   await ctx.state.db.manager.save(script);

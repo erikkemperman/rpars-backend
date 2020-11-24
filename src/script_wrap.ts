@@ -1,46 +1,58 @@
 // PRE
 
-const KEY = 'rpars.notification'
+const KEY = 'rpars.notification';
+const SLEEP = 'rpars.sleep';
 
-function getDate() {
+function getToday() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function getYesterday() {
+  return new Date(Date.now() - 24*60*60*1000).toISOString().slice(0, 10);
+}
+
+function getSleepSummary(date) {
+  const sleep_summary = JSON.parse(localStorage.getItem(SLEEP) || '{}');
+  return sleep_summary[date];
 }
 
 function showMessage(key, title, subtitle, content, expire) {
   _show(key, title, subtitle, content, expire, 'message', undefined);
 }
 
+function showQuestion(key, title, subtitle, content, options, expire) {
+  _show(key, title, subtitle, content, expire, 'question', options);
+}
+
 function _show(key, title, subtitle, content, expire, type, options) {
+  console.log('_show', arguments);
   const now = Date.now();
   const notifications = JSON.parse(localStorage.getItem(KEY) || '{}');
-  for (const date in Object.keys(notifications)) {
-    for (const key in Object.keys(notifications[date])) {
-      const items = [];
-      for (const item in notifications[date][key]) {
-        if (item['expire'] >= now) {
-          items.push(item);
-        }
+  console.log('before', JSON.stringify(notifications));
+  for (const date of Object.keys(notifications)) {
+    for (const k of Object.keys(notifications[date])) {
+      if (notifications[date][k]['expire'] < now) {
+        delete notifications[date][k];
       }
-      notifications[date][key] = items;
     }
   }
-  const date = getDate();
+  const date = getToday();
   if (typeof notifications[date] === 'undefined') {
+    console.log('is empty');
     notifications[date] = {};
   }
-  if (typeof notifications[date][key] === 'undefined') {
-    notifications[date][key] = [];
-  }
-  notifications[date][key].push({
+  notifications[date][key] = {
     'title': title,
     'subtitle': subtitle,
     'content': content,
-    'expire': now + expire,
+    'time': now,
+    'expire': now + expire * 1000,
     'type': type,
     'options': options,
     'status': 'unread'
-  });
-  localStorage.setItem(key, notifications);
+  };
+  console.log('after', JSON.stringify(notifications));
+  localStorage.setItem(KEY, JSON.stringify(notifications));
 }
 
 //<--BODY-->//
