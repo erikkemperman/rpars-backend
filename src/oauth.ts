@@ -7,7 +7,6 @@ import * as session from './session';
 import { stringify_query } from './util';
 
 import { Session, User, Key, OAuth, Oura } from './entity';
-import { userInfo } from 'os';
 
 
 const OURA_AUTH_URL: string = 'https://cloud.ouraring.com/oauth/authorize';
@@ -163,7 +162,7 @@ export const OAUTH_PROVIDERS: {
         let url = `${OURA_API_URL}/${type}?access_token=${oauth.token}`;
         let latest = since;
 
-        const cached: Oura = await ctx.state.db.connection
+        const cached: Oura[] = await ctx.state.db.connection
         .getRepository(Oura)
         .createQueryBuilder('oura')
         .leftJoinAndSelect('oura.key', 'key')
@@ -174,10 +173,9 @@ export const OAUTH_PROVIDERS: {
         .andWhere('user.user_id = :user', {user: user.user_id})
         .orderBy('date', 'DESC')
         .addOrderBy('seq', 'DESC')
-        .limit(1)
-        .getOne();
-        if (cached && cached.date > latest) {
-          latest = cached.date;
+        .getMany();
+        if (cached.length > 0 && cached[0].date > latest) {
+          latest = cached[0].date;
         }
         if (latest >= since) {
           url += '&start=' + latest;
@@ -197,20 +195,32 @@ export const OAUTH_PROVIDERS: {
           // console.log('----');
           if (Array.isArray(data)) {
             const values: Oura[] = [];
+            const remove: number[] = [];
             data.forEach((row) => {
               const date: string = row['summary_date'];
-              if (!latest || date > latest) {
-                const seq: number = row['period_id'] || 0;
-                const value: Oura = new Oura();
-                value.user = user;
-                value.key = key;
-                value.type = type;
-                value.date = date;
-                value.seq = seq;
-                value.value = JSON.stringify(row);
-                values.push(value);
+              const seq: number = row['period_id'] || 0;
+              const value: Oura = new Oura();
+              value.user = user;
+              value.key = key;
+              value.type = type;
+              value.date = date;
+              value.seq = seq;
+              value.value = JSON.stringify(row);
+              values.push(value);
+              for (const c of cached) {
+                if (c.date === date && c.seq === seq) {
+                    remove.push(c.oura_id);
+                  }
               }
             });
+            if (remove.length > 0) {
+              try {
+                await ctx.state.db.manager.delete(Oura, remove);
+              } catch (err) {
+                console.log('Failed to remove oura data');
+                console.log(err);
+              }
+            }
             try {
               await ctx.state.db.manager.save(Oura, values);
             } catch (err) {
@@ -345,10 +355,29 @@ export async function login_return(ctx: Koa.ParameterizedContext) {
     ctx.response.message = `Received an error from ${oauth_provider}: ${err}`;
     return;
   }
+  const oauth_scope: string = ctx.query.scope;
+  if (oauth_scope === undefined) {
+    const err = 'Expected a "scope" parameter in provider response';
+    ctx.response.status = 400;
+    ctx.response.message = `Unexpected response from ${oauth_provider}: ${err}`;
+    return;
+  }
+  const scopes = oauth_scope.split(' ').sort();
+  if (scopes.length !== 2 || scopes[0] !== 'daily' || scopes[1] !== 'personal') {
+    const credentials = Credentials.OAUTH_CREDENTIALS['oura'];
+    const client_id = credentials.client_id;
+    const url = `${OURA_AUTH_URL}?response_type=code&client_id=${client_id}&state=${ctx.query.state}&scope=personal%20daily`;
+
+    ctx.response.body = '<html><p>It appears you have not granted RPARS access to both personal and daily data, '
+               + 'which are required for it to function properly.</p>'
+               + '<a href="' + url + '">Try again</a></html>';
+    ctx.response.set('Content-Type', 'text/html');
+    return;
+  }
 
   const data = await oauth_api.token(ctx, oauth_code);
 
-  oauth.scope = ctx.query.scope; // data.scope;
+  oauth.scope = oauth_scope;
   oauth.token = data.token;
   oauth.refresh = data.refresh;
   oauth.expiration = data.expire.toString();
