@@ -1,9 +1,6 @@
 // PRE
 
 const NOTIFICATION = 'rpars.notification';
-const SLEEP = 'rpars.sleep';
-const ACTIVITY = 'rpars.activity';
-const READINESS = 'rpars.readiness';
 
 function getToday() {
   return getDay(0);
@@ -28,20 +25,20 @@ function formatSeconds(seconds) {
 }
 
 function getSleepSummary(date) {
-  const summary = JSON.parse(localStorage.getItem(SLEEP) || 'null');
-  console.log('Sleep summary', date, summary[date]);
-  return summary[date] || undefined;
+  return getSummary(date, 'sleep');
 }
 
 function getActivitySummary(date) {
-  const summary = JSON.parse(localStorage.getItem(ACTIVITY) || 'null');
-  console.log('Activity summary', date, summary[date]);
-  return summary[date] || undefined;
+  return getSummary(date, 'activity');
 }
 
 function getReadinessSummary(date) {
-  const summary = JSON.parse(localStorage.getItem(READINESS) || 'null');
-  console.log('Readiness summary', date, summary[date]);
+  return getSummary(date, 'readiness');
+}
+
+function getSummary(date, type) {
+  const summary = JSON.parse(localStorage.getItem('rpars.' + type) || 'null');
+  console.log(type + ' summary', date, summary[date]);
   return summary[date] || undefined;
 }
 
