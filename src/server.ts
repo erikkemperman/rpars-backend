@@ -16,6 +16,7 @@ import * as session from './session';
 import * as member from './member';
 import * as oauth from './oauth';
 import * as script from './script';
+import * as answer from './answer';
 
 
 
@@ -104,6 +105,8 @@ Database.create().then((db: Database) => {
 
   router.post('key_get', '/api/key_get', cipher.key_get);
   router.post('key_set', '/api/key_set', cipher.key_set);
+
+  router.post('answer_set', '/api/answer_set', answer.answer_set);
 
   router.post('oauth_providers', '/api/oauth_providers', oauth.get_providers);
   router.get('oauth_send', '/api/oauth_send/:oauth_provider/:session_id', oauth.login_send);

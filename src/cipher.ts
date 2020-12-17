@@ -1,5 +1,4 @@
 import * as Koa from 'koa';
-import * as crypto from 'crypto';
 
 import * as session from './session';
 import * as util from './util';

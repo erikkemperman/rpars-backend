@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 
 import { Constants } from '../constants';
-import { Challenge, Group, Session, Key, OAuth, Oura } from '.';
+import { Answer, Challenge, Group, Session, Key, OAuth, Oura } from '.';
 
 
 @Entity()
@@ -51,4 +51,7 @@ export class User {
 
     @ManyToOne(type => Group, group => group.users)
     group: Group;
+
+    @OneToMany(type => Answer, answer => answer.user)
+    answers: Promise<Answer[]>;
 }

@@ -54,6 +54,10 @@ function showQuestion(date, key, title, subtitle, content, options, expire) {
 }
 
 function _show(date, key, title, subtitle, content, expire, type, options) {
+  if (key.length > 92) {
+    key = key.substr(0, 92);
+    console.warn(`Notice: max key length is 92, truncating to '${key}'`);
+  }
   const now = Date.now();
   const notifications = JSON.parse(localStorage.getItem(NOTIFICATION) || '{}');
   for (const d of Object.keys(notifications)) {

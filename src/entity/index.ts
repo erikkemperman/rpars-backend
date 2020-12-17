@@ -7,3 +7,4 @@ export * from './Key';
 export * from './OAuth';
 export * from './Oura';
 export * from './Script';
+export * from './Answer';
