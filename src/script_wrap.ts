@@ -3,11 +3,11 @@
 const NOTIFICATION = 'rpars.notification';
 
 function getToday() {
-  return getDay(0);
+  return getDay(Date.now());
 }
 
 function getYesterday() {
-  return getDay(1);
+  return getDay(Date.now() - 24 * 60 * 60 * 1000);
 }
 
 function getDay(timestamp) {

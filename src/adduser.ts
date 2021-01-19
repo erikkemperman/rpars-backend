@@ -21,7 +21,12 @@ Database.create().then(async (db: Database) => {
       email = creds.join('');
     }
 
-    const user = new User();
+    let user: User = await db.manager.findOne(User, {where: {email: email}});
+    if (user) {
+      console.log('Existing user, overwrite!')
+    } else {
+      user = new User();
+    }
     user.admin = admin;
     user.email = email;
     user.email_hash = session.hash(email, Credentials.CLIENT_HASH_SALT);
